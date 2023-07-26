@@ -104,58 +104,60 @@ def upload_file(request):
         workbook = load_workbook(file)
         sheet = workbook.active
         users = []
+        skip_first_row = True  # Flag to skip the first row
 
         # Recorrer las filas del archivo Excel y procesar los datos de los usuarios
         for index, row in enumerate(sheet.iter_rows(values_only=True), start=1):
+            if skip_first_row:
+                skip_first_row = False
+                continue  # Skip processing the first row
+            if row[0] == None:
+                break
+
             try:
                 # Extraer los datos del usuario de la fila actual
                 row_data = {
                     'username': row[0],
-                    'email': row[1],
-                    'first_name': row[2],
-                    'last_name': row[3],
-                    'password': row[4],
-                    'password_confirmation': row[4]  # Suponemos que se utiliza la misma contraseña para confirmación
+                    'email': row[0],
+                    'first_name': row[3],
+                    'last_name': row[4],
+                    'password': row[1],
+                    'password_confirmation': row[1]  # Suponemos que se utiliza la misma contraseña para confirmación
                 }
-
-                # Imprimir los datos del usuario de la fila actual (opcional, solo para depuración)
-                print(f"Row {index} Data:", row_data)
-
-                # Verificar que no haya valores vacíos o nulos en los datos del usuario
-                if any(value is None for value in row_data.values()):
-                    print(f"Skipping Row {row_data} - Incomplete data.")
-                    break
-
-                # Validar los datos del usuario utilizando el serializador UserSignUpSerializer
-                serializer = UserSignUpSerializer(data=row_data)
-                serializer.is_valid(raise_exception=True)
-                user = serializer.save()
-                user_data = UserModelSerializer(user).data
-                user_id = user_data['id']
+               
 
                 try:
-                    # Intentar obtener la instancia del usuario recién creado
-                    user_instance = User.objects.get(id=user_id)
-                except User.DoesNotExist:
-                    return JsonResponse({'error': f'User with ID {user_id} not found'}, status=status.HTTP_400_BAD_REQUEST)
+                    # Validar los datos del usuario utilizando el serializador UserSignUpSerializer
+                    serializer = UserSignUpSerializer(data=row_data)
+                    serializer.is_valid(raise_exception=True)
+                    user = serializer.save()
 
-                # Crear un perfil relacionado con el usuario y la ficha
-                per = Perfil()
-                per.documento = row[6]
-                per.rol = rol_instance
-                per.usuario = user_instance
-                per.tipo_documento = row[5]
-                per.save()
+                    # Crear el modelo Perfil y asignar valores a sus atributos
+                    per = Perfil()
+                    per.documento = row[1]
+                    per.rol = rol_instance
+                    per.usuario = user
+                    per.tipo_documento = row[2]
 
-                # Crear un registro de Inscrito relacionando el perfil con la ficha
-                inscrito = Inscrito()
-                inscrito.perfil = per
-                inscrito.ficha = ficha_instance
-                inscrito.save()
+                    # Guardar el modelo Perfil en la base de datos
+                    per.save()
 
-                # Imprimir los datos de los registros creados (opcional, solo para depuración)
-                print(inscrito)
-                print(per)
+                    # Crear el modelo Inscrito y asignar valores a sus atributos
+                    inscrito = Inscrito()
+                    inscrito.perfil = per
+                    inscrito.ficha = ficha_instance
+
+                    # Guardar el modelo Inscrito en la base de datos
+                    inscrito.save()
+
+                    # Resto del código para perfil e inscrito...
+
+                except Exception as e:
+                    # Capturar el error (imprimirlo o usar un logger para guardar el error)
+                    print(f"Error procesando Fila {index}: {str(e)}")
+                    continue  # Continuar con la siguiente iteración si ocurre un error al guardar Perfil o Inscrito
+                user_data = UserModelSerializer(user).data
+                
 
                 # Agregar los datos del usuario al resultado final
                 users.append(user_data)
@@ -171,4 +173,5 @@ def upload_file(request):
 
     # Devolver una respuesta de error si el método de solicitud no es POST
     return JsonResponse({'error': 'Invalid request method'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
 
