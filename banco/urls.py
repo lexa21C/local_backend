@@ -39,7 +39,8 @@ from proyectos.views.proyectos.proyecto_entregas import ProyectoEntregasViewSet
 from proyectos.views.proyectos.participantes import ProyectoParticpantesViewSet
 from proyectos.views.proyectos.buscar_proyectos import BuscarProyectos
 
-
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -67,5 +68,5 @@ urlpatterns = [
     path('api/proyecto-participantes/<int:proyecto_id>/', ProyectoParticpantesViewSet.as_view({'get':'get_participantes'}), name='participantes_del_proyecto'),#terminado
    
 
-]
+]+ static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

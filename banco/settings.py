@@ -134,6 +134,21 @@ STATIC_URL = 'static/'
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
+
+#http://www.alexa.com/staic/logo.png
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+    '/var/www/static'
+    
+    
+]
+#C:/users/alexa/tienda/static/logo.png
+#STATIC_ROOT = 'static'
+
+MEDIA_URL = 'media/' # url
+MEDIA_ROOT = 'media' # carpeta
+
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOW_ALL_ORIGINS: True
