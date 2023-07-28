@@ -12,13 +12,13 @@ class UserLoginSerializer(serializers.Serializer):
     #User login serializer
     #Handle the  login request data
     #email = serializers.EmailField()
-    username = serializers.CharField(min_length=4,max_length=20)
+    username = serializers.CharField(min_length=4,max_length=124)
     password = serializers.CharField(min_length=8,max_length=64)
 
     def validate(self,  data):
         #verificar credenciales
         user = authenticate(username=data['username'], password=data['password'])
-        #user = authenticate(username=data['email'],password=data['password'])
+        # user = authenticate(email=data['username'],password=data['password'])
         #user = authenticate(request=request, email=email, password=password)
         
         print(user)
